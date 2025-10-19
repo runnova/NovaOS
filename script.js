@@ -2134,9 +2134,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 		prepareArrayToSearch();
 
 		onstartup.push(async () => {
-			if (!location.href.startsWith('http://127.0.0.1') && location.origin != 'https://adthoughtsglobal.github.io') {
-				say("You are on an <b style='color:red;'>unsafe</b> copy of NovaOS. Do not use this.", "failed");
-			}
 			edgecases();
 
 			if (detectIE()) {
