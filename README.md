@@ -27,7 +27,7 @@ Nova Ecosystem is a collection of features, including apps, themes, permission s
 - It supports [**RoturTW**](https://rotur.dev/), An accounts system over websockets. NovaOS also supports a few other authentication and cloud services as well.
 
 ## Run it.
-[https://adthoughtsglobal.github.io/Nova-OS/](https://adthoughtsglobal.github.io/Nova-OS).
+[https://runnova.github.io/now/](https://runnova.github.io/now/).
 > If you are on mobiles, NovaOS Mobile Mode works well as a PWA. Learn How To Install [here](https://novaos.gitbook.io/main/get-started/access-novaos#installing-novaos-as-an-app-in-chrome).
 
 # Resources
@@ -41,3 +41,5 @@ Web development has never been this powerful. Find out more about NovaOS app dev
 
 ## Be first to know 
 Join the [Discord server](https://discord.gg/atkqbwEQU8) for news, polls, ideas, issues, or being a part of developing NovaOS. You can also find me there!
+
+> If you're wondering, NovaOS repository was recently moved here from adthoughtsglobal/Nova-OS.
