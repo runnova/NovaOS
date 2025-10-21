@@ -3,7 +3,7 @@
 # NovaOS
 The open-source, stable, fully-local web desktop system, made for every modern browser and device.
 
-[Homepage](https://adthoughtsglobal.github.io/NovaOS/) | [Docs](https://novaos.gitbook.io/novaos-docs) | [Discord](https://discord.gg/atkqbwEQU8) [ Join for News, polls and more ]
+[Homepage](https://adthoughtsglobal.github.io/NovaOS/) | [Docs](https://novaos.gitbook.io/novaos-docs) | [Discord](https://discord.gg/atkqbwEQU8) | [X](https://x.com/novaosweb)
 
 ```txt
 Version: 2.1
