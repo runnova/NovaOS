@@ -9,7 +9,7 @@ The open-source, stable, fully-local web desktop system, made for every modern b
 Version: 2.1
 Title: Lazarus
 ```
-<img height="20" src="https://img.shields.io/github/languages/count/runnova/NovaOS"/> <img height="20" src="https://img.shields.io/github/last-commit/runnova/dev"/> <a href="https://rotur.dev"><img src="https://rotur.dev/rotur%20badge.png" height="20" alt="This OS supports rotur"></a> <a href="https://adthoughtsglobal.github.io/screens/donate.html"> <img src="https://i.ibb.co/WvmDbGm0/Support-2.png" height="20" alt="Support NovaOS"></a>
+<img height="20" src="https://img.shields.io/github/languages/count/runnova/NovaOS"/> <img height="20" src="https://img.shields.io/github/last-commit/runnova/dev"/>
 
 <img width="1606" height="910" alt="image" src="https://github.com/user-attachments/assets/5cbd7a84-11fb-4565-9e86-e8fe0cc12788" />
 <br>
@@ -24,7 +24,6 @@ Nova Ecosystem is a collection of features, including apps, themes, permission s
 - It has a codebase built entirely on pure **HTML, vanilla JavaScript, and CSS** making it very reliable and private, as it can function fully offline, thanks to its local-first nature.
 - A suite of default applications to ease your work. There's also a store where you can install even more applications!
 - NovaOS is designed for the user. The system focuses on giving a stable environment that a user needs. Maintaining simplicity and efficiency in UI. No flashy effects or extensive animations.
-- It supports [**RoturTW**](https://rotur.dev/), An accounts system over websockets. NovaOS also supports a few other authentication and cloud services as well.
 
 ## Run it.
 [https://runnova.github.io/NovaOS/](https://runnova.github.io/NovaOS/).
