@@ -22,6 +22,7 @@ Nova Ecosystem is a collection of features, including apps, themes, permission s
 - NovaOS is a **mobile friendly**, **fully local and offline** web system with a **web desktop** packaged as a PWA.
 - NovaOS is **Open-Source** (under GPL v3).
 - It has a codebase built entirely on pure **HTML, vanilla JavaScript, and CSS** making it very reliable and private, as it can function fully offline, thanks to its local-first nature.
+- NovaOS lets you encrypt all your imported files by a password (), fully locally.
 - A suite of default applications to ease your work. There's also a store where you can install even more applications!
 - NovaOS is designed for the user. The system focuses on giving a stable environment that a user needs. Maintaining simplicity and efficiency in UI. No flashy effects or extensive animations.
 
