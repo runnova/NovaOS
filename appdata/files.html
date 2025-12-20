@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 
@@ -47,6 +48,7 @@
 			flex-wrap: nowrap;
 			padding: 3px;
 			padding-bottom: 0;
+			z-index: 99;
 		}
 
 		.flappsearch {
@@ -62,7 +64,7 @@
 
 		div#filetools {
 			width: 100%;
-			overflow-x: auto;
+			overflow-y: visible;
 		}
 
 		.nowid {
@@ -74,7 +76,7 @@
 			display: flex;
 			justify-content: center;
 			align-items: center;
-			overflow: hidden;
+			overflow: visible;
 			border-radius: var(--siz-radius1);
 			margin: 0.1rem;
 		}
@@ -101,7 +103,7 @@
 			transition: .3s;
 			border-radius: var(--siz-radius1);
 			overflow-x: hidden;
-			height: calc(100vh - 66px);
+			height: calc(100vh - 52px);
 		}
 
 		[flap-sidenav] small {
@@ -521,8 +523,9 @@
 			display: flex;
 			flex-direction: row;
 			align-items: flex-start;
-			border-radius: 5px;
-			overflow: auto;
+			border-radius: var(--siz-radius1);
+			overflow: visible;
+			background: var(--col-bg2);
 			justify-content: flex-start;
 		}
 
@@ -530,17 +533,41 @@
 			color: var(--col-txt1);
 			text-decoration: none;
 			display: flex;
-			flex-direction: column;
+			flex-direction: row;
 			cursor: pointer;
 			animation: poprs .2s ease-out;
 			white-space: nowrap;
 			text-overflow: ellipsis;
 			align-items: center;
 			opacity: 0.7;
-			font-size: 11px;
-			padding: 0.3rem .5rem;
-			flex: 1;
-			max-width: 70px;
+			font-size: 14px;
+			padding: .5em .7em;
+			gap: 5px;
+			position: relative;
+			width: fit-content;
+
+			&:hover>.dropup-content.nested {
+				display: flex;
+				border-radius: var(--siz-radius1);
+			}
+		}
+
+		.dropup-content.nested {
+			position: absolute;
+			display: none;
+			top: 2.5em;
+			flex-direction: column;
+			left: 0;
+			box-shadow: 0 3px 10px #00000067;
+			border: var(--box-crisp);
+
+			&>a {
+				width: calc(100% - 1.35em);
+
+				&>span {
+					transform: scale(0.9);
+				}
+			}
 		}
 
 		a.dropdownerthebob.disabled {
@@ -549,18 +576,31 @@
 
 		a.dropdownerthebob b {
 			font-weight: normal;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			text-transform: capitalize;
+			transition: opacity .5s;
 		}
 
 		a.dropdownerthebob span {
 			font-size: 20px !important;
-			opacity: 0.7;
 			color: var(--colors-text-section);
+			transition: var(--time2);
 		}
 
 		a.dropdownerthebob:hover {
 			opacity: 1;
 			color: var(--colors-text-section);
 			background-color: var(--col-bg3);
+			border-radius: var(--siz-radius1);
+
+			&>span {
+				transform: scale(0.9);
+
+				&.droptglbtn {
+					transform: translateY(3px);
+				}
+			}
 		}
 
 		[flap-fl-topnav] div {
@@ -683,7 +723,10 @@
 
 		#pathdisp span {
 			display: inline-block;
+			white-space: nowrap;
 			opacity: 0.7;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 
 		#pathdisp span:hover {
@@ -759,7 +802,7 @@
 			gap: .5em;
 			padding: .5em .8em;
 			max-width: none;
-			width: fit-content;
+			width: 100%;
 		}
 
 		#file-info {
@@ -927,7 +970,7 @@
 		<div flap-nav>
 			<div class="nowid" onclick="refresh()">
 				<a class="dropdownerthebob"><span class="material-symbols-rounded " id="ogrefreshbtn">refresh</span>
-					Refresh</a>
+				</a>
 			</div>
 			<div class="nowid flappsearch" id="fileapptitledis">
 				<div id="filetools">
@@ -1309,7 +1352,7 @@
 			}
 		}
 
-		var currentPath = 'Downloads/', nowfile, flmode = 'grid', onlyshow = false, fileToSelect = null, currentProc = null, slfileID = null;
+		var currentPath = 'Downloads/', nowfile, flmode = 'grid', onlyshow = false, fileToSelect = null, currentProc = null, slfileID = null, currentSort = "name_asc";
 		var fllist = document.getElementById("filelist");
 		var fdlist;
 		var binmode = false;
@@ -1412,122 +1455,168 @@
 			moveFileToFolder(data, dat)
 		}
 
-
 		function fillDropup(folderPath, silly = false) {
 			const dropupDiv = document.getElementById("filetools");
 			dropupDiv.innerHTML = "";
-
 			const dropupContentDiv = document.createElement("div");
 			dropupContentDiv.className = "dropup-content";
-
-			const moreToolsDiv = document.getElementById("moretoolsdropdwn");
-			moreToolsDiv.innerHTML = "";
-
 			const pathSegments = folderPath.split('/').filter(Boolean);
 			const isSystemFolder = folderPath === "System/" || folderPath === "";
 			const isRootLevel = pathSegments.length <= 1;
 
-			const actions = [
-				{
-					id: "search",
-					title: "Search files",
-					onclick: window.parent.opensearchpanel,
-					innerHTML: `<span class="material-symbols-rounded">search</span> <b>Search</b>`,
-				},
-				{
-					id: "deleteFolder",
-					title: "Delete folder",
-					onclick: isSystemFolder ? (e) => e.preventDefault() : remfold,
-					innerHTML: `<span class="material-symbols-rounded">delete</span> <b>Delete</b>`,
-					disabled: isSystemFolder
-				},
-				{
-					id: "createFolder",
-					title: "Create folder",
-					onclick: () => {
-						document.getElementById("make_fold_pre_path").innerText = folderPath;
-						document.getElementById('makefoldia').showModal()
+			const groups = {
+				folder: [
+					{
+						id: "createFolder",
+						title: "Create folder",
+						onclick: () => {
+							document.getElementById("make_fold_pre_path").innerText = folderPath;
+							document.getElementById('makefoldia').showModal();
+						},
+						icon: "add",
+						label: "Folder"
 					},
-					innerHTML: `<span class="material-symbols-rounded">add</span> <b>Folder</b>`
-				},
-				{
-					id: "createFile",
-					title: "Create File",
-					onclick: () => document.getElementById('makefiledia').showModal(),
-					innerHTML: `<span class="material-symbols-rounded">add</span> <b>New File</b>`
-				},
-				{
-					id: "parentFolder",
-					title: "Parent folder",
-					onclick: () => {
-						if (!isRootLevel) {
-							const parentPath = folderPath.substring(0, folderPath.lastIndexOf('/', folderPath.lastIndexOf('/') - 1) + 1);
-							listFiles(parentPath);
-						}
+					{
+						id: "deleteFolder",
+						title: "Delete folder",
+						onclick: isSystemFolder ? (e) => e.preventDefault() : remfold,
+						icon: "delete",
+						label: "Delete",
+						disabled: isSystemFolder
 					},
-					innerHTML: `<span class="material-symbols-rounded">keyboard_return</span> <b>Parent</b>`,
-					disabled: isRootLevel
-				},
-				{
-					id: "toggleView",
-					title: flmode === 'grid' ? 'List view' : 'Grid view',
-					onclick: function () {
-						flmode = flmode === 'grid' ? 'list' : 'grid';
-						changeview(flmode);
-						this.title = flmode === 'grid' ? 'List view' : 'Grid view';
-						this.innerHTML = flmode === 'grid'
-							? `<span class="material-symbols-rounded">view_list</span> <b>List View</b>`
-							: `<span class="material-symbols-rounded">grid_view</span> <b>Grid View</b>`;
+					{
+						id: "parentFolder",
+						title: "Parent folder",
+						onclick: () => {
+							if (!isRootLevel) {
+								const parentPath = folderPath.substring(0, folderPath.lastIndexOf('/', folderPath.lastIndexOf('/') - 1) + 1);
+								listFiles(parentPath);
+							}
+						},
+						icon: "keyboard_return",
+						label: "Parent",
+						disabled: isRootLevel
 					},
-					innerHTML: flmode === 'grid'
-						? `<span class="material-symbols-rounded">view_list</span> <b>List View</b>`
-						: `<span class="material-symbols-rounded">grid_view</span> <b>Grid View</b>`
+					{
+						id: "zipFolder",
+						title: "Zip this folder",
+						onclick: async () => {
+							console.log(453, folderPath)
+							let zipped = await window.parent.zipFolder(folderPath);
+							let tmpflpth = folderPath.endsWith('/') ? folderPath.slice(0, -1) : folderPath
+							let toBeSavedToData = await ntxSession.send("olp.useHandler", "file_manager", { "opener": 'saveas', "value": tmpflpth + ".zip" });
+							await ntxSession.send("fileSet.createFile", toBeSavedToData.path, toBeSavedToData.name, false, zipped);
+						},
+						icon: "folder_zip",
+						label: "Zip"
+					}
+				],
+				files: [
+					{
+						id: "search",
+						title: "Search files",
+						onclick: window.parent.opensearchpanel,
+						icon: "search",
+						label: "Search"
+					},
+					{
+						id: "createFile",
+						title: "Create File",
+						onclick: () => document.getElementById('makefiledia').showModal(),
+						icon: "add",
+						label: "New File"
+					}
+				],
+				view: [
+					{
+						id: "toggleView",
+						title: flmode === 'grid' ? 'List view' : 'Grid view',
+						onclick: function () {
+							flmode = flmode === 'grid' ? 'list' : 'grid';
+							changeview(flmode);
+							this.title = flmode === 'grid' ? 'List view' : 'Grid view';
+							this.innerHTML = flmode === 'grid'
+								? `<span class="material-symbols-rounded">view_list</span> <b>List View</b>`
+								: `<span class="material-symbols-rounded">grid_view</span> <b>Grid View</b>`;
+						},
+						icon: flmode === 'grid' ? 'view_list' : 'grid_view',
+						label: flmode === 'grid' ? 'List View' : 'Grid View'
+					},
+					{
+						id: "toggleSort",
+						title: "Sort files",
+						onclick: async function () {
+							const options = [
+								{ label: "Oldest first", mode: "time_asc", icon: "schedule" },
+								{ label: "Newest first", mode: "time_desc", icon: "schedule" },
+								{ label: "Name A-Z", mode: "name_asc", icon: "sort_by_alpha" },
+								{ label: "Name Z-A", mode: "name_desc", icon: "sort_by_alpha" },
+								{ label: "File type", mode: "type", icon: "category" }
+							];
+							const selected = await window.parent.showDropdownModal(
+								"Sort files",
+								"Choose a sorting method:",
+								options.map(o => o.label)
+							);
+							const choice = options.find(o => o.label === selected);
+							if (choice) {
+								currentSort = choice.mode;
+								this.title = `Sort: ${choice.label}`;
+								this.innerHTML = `<span class="material-symbols-rounded">${choice.icon}</span> <b>${choice.label}</b>`;
+							}
+							listFiles();
+						},
+						icon: (() => {
+							const mapping = {
+								time_asc: "schedule",
+								time_desc: "schedule",
+								name_asc: "sort_by_alpha",
+								name_desc: "sort_by_alpha",
+								type: "category"
+							};
+							return mapping[currentSort] || "sort";
+						})(),
+						label: (() => {
+							const mapping = {
+								time_asc: "Oldest first",
+								time_desc: "Newest first",
+								name_asc: "Name A-Z",
+								name_desc: "Name Z-A",
+								type: "File type"
+							};
+							return mapping[currentSort] || "Sort files";
+						})()
+					}
+				]
+			};
+
+			for (const [groupName, group] of Object.entries(groups)) {
+				const groupToggle = document.createElement("a");
+				groupToggle.classList.add("dropdownerthebob");
+				groupToggle.innerHTML = `<span class="material-symbols-rounded droptglbtn">expand_more</span> <b>${groupName}</b>`;
+				const groupMenu = document.createElement("div");
+				groupMenu.className = "dropup-content nested";
+				groupToggle.appendChild(groupMenu);
+				dropupContentDiv.appendChild(groupToggle);
+				for (const { id, title, onclick, icon, label, disabled } of group) {
+					const link = document.createElement("a");
+					link.classList.add("dropdownerthebob");
+					link.title = title;
+					link.onclick = onclick;
+					link.innerHTML = `<span class="material-symbols-rounded">${icon}</span> <b>${label}</b>`;
+					link.id = `topbarAction-${id}`;
+					if (disabled) link.classList.add("disabled");
+					groupMenu.appendChild(link);
 				}
-			];
-
-			const actionLinks = [];
-
-			actions.forEach(({ id, title, onclick, innerHTML, disabled }) => {
-				const link = document.createElement("a");
-				link.classList.add("dropdownerthebob");
-				link.title = title;
-				link.onclick = onclick;
-				link.innerHTML = innerHTML;
-				link.id = `topbarAction-${id}`;
-				if (disabled) link.classList.add("disabled");
-				actionLinks.push(link);
-				dropupContentDiv.appendChild(link);
-			});
+			}
 
 			dropupDiv.appendChild(dropupContentDiv);
-
-			requestAnimationFrame(() => {
-				let overflowStarted = false;
-
-				while (dropupDiv.scrollHeight > dropupDiv.clientHeight && actionLinks.length > 0) {
-					const linkToMove = actionLinks.pop();
-					dropupContentDiv.removeChild(linkToMove);
-					moreToolsDiv.appendChild(linkToMove);
-					overflowStarted = true;
-				}
-
-				if (overflowStarted) {
-					const moreToggle = document.createElement("a");
-					moreToggle.classList.add("dropdownerthebob");
-					moreToggle.title = "More Tools";
-					moreToggle.innerHTML = `<span class="material-symbols-rounded">more_vert</span> <b>More</b>`;
-					moreToggle.onclick = () => {
-						moreToolsDiv.classList.toggle("visible");
-					};
-					dropupContentDiv.appendChild(moreToggle);
-				}
-			});
-
 			if (!silly) {
 				currentPath = folderPath;
 				updpth();
 			}
 		}
+
 		async function refresh() {
 			window.parent.updateMemoryData();
 			const refreshButton = document.getElementById('ogrefreshbtn');
@@ -1548,26 +1637,18 @@
 		function dragfl(ev, obj) {
 			ev.dataTransfer.setData("Text", obj.getAttribute('unid'));
 		}
-
-		let cachedFiles = {};
-		var PrevPath = "Downloads";
+		let cachedFiles = {}; var PrevPath = "Downloads";
 
 		async function listFiles(folderName = currentPath, gen) {
 			if (sessiontype != "opener" && sessiontype != "saveas") {
 				myWindow.setTitle(removeEndSlash(folderName) + " - Files");
 			}
-
-			if (sessiontype == "directory") {
-				return;
-			}
+			if (sessiontype == "directory") return;
 			const startTime = performance.now();
 			if (currentPath == folderName && gen) {
 				const previousFiles = cachedFiles[currentPath] || [];
 				const currentFiles = await window.parent.getFileNamesByFolder(folderName);
-
-				if (JSON.stringify(previousFiles) === JSON.stringify(currentFiles)) {
-					return;
-				}
+				if (JSON.stringify(previousFiles) === JSON.stringify(currentFiles)) return;
 			}
 			fllist.innerHTML = ``;
 			await window.parent.updateMemoryData();
@@ -1576,54 +1657,73 @@
 				let parts = path.split('/').filter(p => p !== '');
 				for (let i = 0; i < parts.length; i++) {
 					let key = parts[i] + '/';
-					if (obj[key]) {
-						obj = obj[key];
-					} else {
-						return null;
-					}
+					if (obj[key]) obj = obj[key];
+					else return null;
 				}
 				return obj;
 			}
 
 			const folder = findFolder(folderName, window.parent.memory.root);
-			if (folder) {
-				PrevPath = folder;
-				fillDropup(folderName);
-
-				const filesInFolder = await window.parent.getAllItemsInFolder(folderName);
-				if (filesInFolder) {
-					if (filesInFolder.length > 0) {
-						document.getElementById("fileinfobn").innerHTML = filesInFolder.length + " items";
-						if (!gen) {
-							const previousFiles = cachedFiles[currentPath] || [];
-							const currentFileNames = new Set(filesInFolder.map(file => file.name));
-
-							const removedFiles = previousFiles.filter(file => !currentFileNames.has(file.name));
-							const addedFiles = filesInFolder.filter(file => !previousFiles.some(prev => prev.name === file.name));
-
-							removedFiles.forEach(removedFile => {
-								const fileElement = document.querySelector(`[title^="${removedFile.name}"]`);
-								fileElement?.remove();
-							});
-
-							for (const newFile of addedFiles) {
-								await createFileElement(newFile);
-							}
-
-						} else {
-							cachedFiles[currentPath] = filesInFolder;
-						}
-					} else {
-						fllist.innerHTML = `<center class='thisfolderisempty'><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="74.20199" height="94.1023" viewBox="0,0,74.20199,94.1023"><g transform="translate(-224.61774,-142.87893)"><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" fill-rule="nonzero" stroke="#ffffff" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" style="mix-blend-mode: normal"><path style="animation: headsad .5s 2;" d="M227.11774,158.26119c0,-7.11468 5.76758,-12.88226 12.88226,-12.88226c7.11468,0 12.88226,5.76758 12.88226,12.88226c0,7.11468 -5.76758,12.88226 -12.88226,12.88226c-7.11468,0 -12.88226,-5.76758 -12.88226,-12.88226z" fill="none" stroke-width="5" stroke-linecap="butt"/><path d="M244.56247,233.94447l9.12493,-32.20565l-8.58817,-28.98508" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M253.6874,202.81234l17.71311,31.66888" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M246.17275,178.6581l-7.51465,27.37481" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M250.46684,179.73163l28.44833,-12.3455" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M260.82196,192.96703l-1.81137,-23.54791l37.99776,-2.9229l1.81138,23.54791z" fill="#aa8b00" stroke-width="0" stroke-linecap="butt"/><path onclick="ntxSession.send("sysUI.say",'You found it :3')" d="M256.80524,189.29958l2.20535,-19.88046l37.99776,-2.9229l-2.20535,19.53118z" fill="#ffcf00" stroke-width="0" stroke-linecap="butt"/><path d="M279.06646,168.81576l-0.1513,-1.42964" fill="none" stroke-width="5" stroke-linecap="round"/></g></g></svg><br>This folder is empty.</center>`;
-					}
-				}
-
-				(document.getElementById("listfilesloader")) ? document.getElementById("listfilesloader").remove() : null;
-			} else {
-				console.error("No such path.")
+			if (!folder) {
+				console.error("No such path.");
 				listFiles(PrevPath);
+				return;
 			}
+
+			PrevPath = folder;
+			fillDropup(folderName);
+			const filesInFolder = await window.parent.getAllItemsInFolder(folderName);
+
+			if (!filesInFolder || filesInFolder.length === 0) {
+				fllist.innerHTML = `<center class='thisfolderisempty'><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="74.20199" height="94.1023" viewBox="0,0,74.20199,94.1023"><g transform="translate(-224.61774,-142.87893)"><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" fill-rule="nonzero" stroke="#ffffff" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" style="mix-blend-mode: normal"><path style="animation: headsad .5s 2;" d="M227.11774,158.26119c0,-7.11468 5.76758,-12.88226 12.88226,-12.88226c7.11468,0 12.88226,5.76758 12.88226,12.88226c0,7.11468 -5.76758,12.88226 -12.88226,12.88226c-7.11468,0 -12.88226,-5.76758 -12.88226,-12.88226z" fill="none" stroke-width="5" stroke-linecap="butt"/><path d="M244.56247,233.94447l9.12493,-32.20565l-8.58817,-28.98508" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M253.6874,202.81234l17.71311,31.66888" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M246.17275,178.6581l-7.51465,27.37481" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M250.46684,179.73163l28.44833,-12.3455" fill="none" stroke-width="5" stroke-linecap="round"/><path d="M260.82196,192.96703l-1.81137,-23.54791l37.99776,-2.9229l1.81138,23.54791z" fill="#aa8b00" stroke-width="0" stroke-linecap="butt"/><path onclick="ntxSession.send("sysUI.say",'You found it :3')" d="M256.80524,189.29958l2.20535,-19.88046l37.99776,-2.9229l-2.20535,19.53118z" fill="#ffcf00" stroke-width="0" stroke-linecap="butt"/><path d="M279.06646,168.81576l-0.1513,-1.42964" fill="none" stroke-width="5" stroke-linecap="round"/></g></g></svg><br>This folder is empty.</center>`;
+				return;
+			}
+
+			document.getElementById("fileinfobn").innerHTML = filesInFolder.length + " items";
+			let sortedFiles = [...filesInFolder];
+			switch (currentSort) {
+				case "time_asc":
+					sortedFiles.sort((a, b) => {
+						const t1 = a.metadata?.datetime ? new Date(a.metadata.datetime) : 0;
+						const t2 = b.metadata?.datetime ? new Date(b.metadata.datetime) : 0;
+						return t1 - t2;
+					});
+					break;
+				case "time_desc":
+					sortedFiles.sort((a, b) => {
+						const t1 = a.metadata?.datetime ? new Date(a.metadata.datetime) : 0;
+						const t2 = b.metadata?.datetime ? new Date(b.metadata.datetime) : 0;
+						return t2 - t1;
+					});
+					break;
+				case "name_asc":
+					sortedFiles.sort((a, b) => a.name.localeCompare(b.name));
+					break;
+				case "name_desc":
+					sortedFiles.sort((a, b) => b.name.localeCompare(a.name));
+					break;
+				case "type":
+					sortedFiles.sort((a, b) => {
+						if (a.type === b.type) return a.name.localeCompare(b.name);
+						return a.type === 'folder' ? -1 : 1;
+					});
+					break;
+			}
+
+			if (!gen) {
+				const previousFiles = cachedFiles[currentPath] || [];
+				const currentFileNames = new Set(sortedFiles.map(f => f.name));
+				const removedFiles = previousFiles.filter(f => !currentFileNames.has(f.name));
+				const addedFiles = sortedFiles.filter(f => !previousFiles.some(prev => prev.name === f.name));
+				removedFiles.forEach(f => document.querySelector(`[title^="${f.name}"]`)?.remove());
+				for (const newFile of addedFiles) await createFileElement(newFile);
+			} else {
+				cachedFiles[currentPath] = sortedFiles;
+				for (const file of sortedFiles) await createFileElement(file);
+			} (document.getElementById("listfilesloader")) ? document.getElementById("listfilesloader").remove() : null;
 		}
+
+
 		async function createFileElement(file) {
 			const fileElement = document.createElement('div');
 			fileElement.classList.add('file');
@@ -1848,61 +1948,59 @@
 
 			return `${size.toFixed(2)} ${units[index]}`;
 		}
-
 		async function populateFileActions(fileData) {
 			if (sessiontype === "opener") return;
 			const toolsContainer = document.getElementById("filetools");
 			const moreToolsContainer = document.getElementById("moretoolsdropdwn");
 			toolsContainer.innerHTML = "";
 			moreToolsContainer.innerHTML = "";
-
 			const contentDiv = document.createElement("div");
 			contentDiv.className = "dropup-content";
 			toolsContainer.appendChild(contentDiv);
-
 			if (selectedFiles.length > 1) {
 				const deleteAll = document.createElement("a");
 				deleteAll.className = "dropdownerthebob";
-				deleteAll.innerHTML = `<span class="material-symbols-rounded">delete</span> <b>Delete All</b>`;
+				deleteAll.innerHTML = `<span class="material-symbols-rounded" style="color:#ffb3ba;">delete</span> <b>Delete All</b>`;
 				deleteAll.onclick = () => deleteFiles(selectedFiles);
 				contentDiv.appendChild(deleteAll);
 				document.getElementById("fileinfobn").innerHTML = "Selected " + selectedFiles.length + " files";
 				return;
 			}
-
-			const visibleOptions = [];
-			for (const action of Object.values(fileActions)) {
-				if (await action.condition(fileData)) {
-					const option = document.createElement("a");
-					option.classList.add("dropdownerthebob");
-					option.title = action.label;
-					option.onclick = () => action.action(fileData.id);
-					option.innerHTML = `<span class="material-symbols-rounded" style="color: ${action.color}">${action.icon}</span> <b>${action.label}</b>`;
-					visibleOptions.push(option);
-					contentDiv.appendChild(option);
+			for (const [groupName, group] of Object.entries(fileActions)) {
+				for (const action of Object.values(group)) {
+					if (action.special && await action.condition(fileData)) {
+						const option = document.createElement("a");
+						option.classList.add("dropdownerthebob");
+						option.title = action.label;
+						option.onclick = () => action.action(fileData.id);
+						option.innerHTML = `<span class="material-symbols-rounded" style="color:${action.icon_color};">${action.icon}</span> <b>${action.label}</b>`;
+						contentDiv.appendChild(option);
+					}
 				}
 			}
-
-			const moreToggle = document.createElement("a");
-			moreToggle.classList.add("dropdownerthebob");
-			moreToggle.title = "More Tools";
-			moreToggle.innerHTML = `<span class="material-symbols-rounded">more_vert</span> <b>More</b>`;
-			moreToggle.onclick = () => moreToolsContainer.classList.toggle("visible");
-			moreToggle.style.visibility = "hidden";
-			contentDiv.appendChild(moreToggle);
-
-			requestAnimationFrame(() => {
-				let overflow = false;
-				while (visibleOptions.length > 0) {
-					if (contentDiv.scrollWidth <= contentDiv.clientWidth) break;
-					const last = visibleOptions.pop();
-					contentDiv.removeChild(last);
-					moreToolsContainer.appendChild(last);
-					overflow = true;
+			for (const [groupName, group] of Object.entries(fileActions)) {
+				const groupActions = Object.values(group).filter(a => !a.special);
+				if (!groupActions.length) continue;
+				const groupToggle = document.createElement("a");
+				groupToggle.classList.add("dropdownerthebob");
+				groupToggle.innerHTML = `<span class="material-symbols-rounded droptglbtn">expand_more</span> <b>${groupName}</b>`;
+				const groupMenu = document.createElement("div");
+				groupMenu.className = "dropup-content nested";
+				groupToggle.appendChild(groupMenu);
+				contentDiv.appendChild(groupToggle);
+				for (const action of groupActions) {
+					if (await action.condition(fileData)) {
+						const option = document.createElement("a");
+						option.classList.add("dropdownerthebob");
+						option.title = action.label;
+						option.onclick = () => action.action(fileData.id);
+						option.innerHTML = `<span class="material-symbols-rounded" style="color:${action.icon_color};">${action.icon}</span> <b>${action.label}</b>`;
+						groupMenu.appendChild(option);
+					}
 				}
-				if (overflow) moreToggle.style.visibility = "visible"; else contentDiv.removeChild(moreToggle);
-			});
+			}
 		}
+
 
 		var isitBulkRemfile = false;
 		async function remfile(ID) {
@@ -2246,81 +2344,130 @@
 			await window.parent.createFile(currentPath, file.fileName, false, file.content, file.metadata || {});
 
 		}
-
 		window.fileActions = {
-			unselect: {
-				icon: 'remove_selection',
-				label: 'Unselect',
-				action: (itemuid) => refresh(),
-				condition: (file) => true,
+			file: {
+				delete: {
+					icon: 'delete',
+					icon_color: '#ffb3ba',
+					label: 'Delete',
+					action: (itemuid) => remfile(itemuid),
+					condition: (file) => true,
+					special: true
+				},
+				rename: {
+					icon: 'save_as',
+					icon_color: '#bae1ff',
+					label: 'Rename',
+					action: async (itemuid) => {
+						let file = await ntxSession.send("fileGet.byId", itemuid)
+						file.fileName = await ntxSession.send("sysUI.ask", "New Name:", file.fileName)
+						await window.parent.updateFile(false, itemuid, file)
+					},
+					condition: (file) => true,
+				},
+				move: {
+					icon: 'drive_file_move',
+					icon_color: '#baffc9',
+					label: 'Move',
+					action: (itemuid) => movefile(itemuid),
+					condition: (file) => true,
+				},
 			},
 			open: {
-				icon: 'open_in_new',
-				label: 'Open',
-				action: (itemuid) => openfile(itemuid),
-				condition: (file) => true,
-			},
-			delete: {
-				icon: 'delete',
-				label: 'Delete',
-				action: (itemuid) => remfile(itemuid),
-				condition: (file) => true,
-			},
-			rename: {
-				icon: 'save_as',
-				label: 'Rename',
-				action: async (itemuid) => {
-					let file = await ntxSession.send("fileGet.byId", itemuid);
-					file.fileName = await ntxSession.send("sysUI.ask", "New Name:", file.fileName);
-					await window.parent.updateFile(false, itemuid, file);
+				open: {
+					icon: 'open_in_new',
+					icon_color: '#fff3b0',
+					label: 'Open',
+					action: (itemuid) => openfile(itemuid),
+					condition: (file) => true,
 				},
-				condition: (file) => true,
-			},
-			reinstall: {
-				icon: 'download',
-				label: 'Reinstall',
-				action: (itemuid) => window.parent.extractAndRegisterCapabilities(itemuid),
-				condition: (file) => getFileExtension(file.fileName) === 'app',
-			},
-			setWallpaper: {
-				icon: 'wallpaper',
-				label: 'Set As Wallpaper',
-				action: (itemuid) => window.parent.makewall(itemuid),
-				condition: async (file) => (await ntxSession.send("utility.getBaseFileType", getFileExtension(file.fileName))) === 'image',
-			},
-			move: {
-				icon: 'drive_file_move',
-				label: 'Move',
-				action: (itemuid) => movefile(itemuid),
-				condition: (file) => true,
-			},
-			copyId: {
-				icon: 'content_copy',
-				label: 'Copy ID',
-				action: (itemuid) => {
-					window.parent.navigator.clipboard.writeText(itemuid)
+				openWith: {
+					icon: 'open_with',
+					icon_color: '#d5b3ff',
+					label: 'Open With',
+					action: (itemuid) => openfile(itemuid, 'any'),
+					condition: (file) => true,
 				},
-				condition: (file) => true,
+				openAsText: {
+					icon: 'article_shortcut',
+					icon_color: '#ffdfba',
+					label: 'Open as text',
+					action: (itemuid) => openfile(itemuid, 'text'),
+					condition: (file) => true,
+				},
 			},
-			createShortcut: {
-				icon: 'add',
-				label: 'Shortcut',
-				action: (itemuid) => addShortcut(itemuid),
-				condition: (file) => true,
+			more: {
+				reinstall: {
+					icon: 'download',
+					icon_color: '#caffbf',
+					label: 'Reinstall',
+					action: (itemuid) => window.parent.extractAndRegisterCapabilities(itemuid),
+					condition: (file) => getFileExtension(file.fileName) === 'app',
+					special: true
+				},
+				setWallpaper: {
+					icon: 'wallpaper',
+					icon_color: '#ffd6a5',
+					label: 'Set As Wallpaper',
+					action: (itemuid) => window.parent.makewall(itemuid),
+					condition: async (file) => (await ntxSession.send("utility.getBaseFileType", getFileExtension(file.fileName))) === 'image',
+					special: true
+				},
+				exportFile: {
+					icon: 'file_save',
+					icon_color: '#b5ead7',
+					label: 'Export file',
+					action: async (itemuid) => {
+						let file = await ntxSession.send("fileGet.byId", itemuid)
+						let [meta, b64] = file.content.split(',')
+						let mime = meta.match(/:(.*?);/)[1]
+						let binary = atob(b64)
+						let len = binary.length
+						let bytes = new Uint8Array(len)
+						for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i)
+						let blob = new Blob([bytes], { type: mime })
+						let url = URL.createObjectURL(blob)
+						let link = document.createElement("a")
+						link.href = url
+						link.download = file.fileName
+						document.body.appendChild(link)
+						link.click()
+						document.body.removeChild(link)
+						URL.revokeObjectURL(url)
+					},
+					condition: (file) => true,
+				},
+				copyId: {
+					icon: 'content_copy',
+					icon_color: '#b5ead7',
+					label: 'Copy ID',
+					action: (itemuid) => {
+						window.parent.navigator.clipboard.writeText(itemuid)
+					},
+					condition: (file) => true,
+				},
+				createShortcut: {
+					icon: 'add',
+					icon_color: '#ffb3ba',
+					label: 'Shortcut',
+					action: (itemuid) => addShortcut(itemuid),
+					condition: (file) => true,
+				},
+				unZip: {
+					icon: 'unarchive',
+					icon_color: '#b5ead7',
+					label: 'Unzip',
+					action: async (itemuid) => {
+						let file = await ntxSession.send("fileGet.byId", itemuid)
+						let toBeSavedToData = await ntxSession.send("olp.useHandler", "file_manager", { "opener": 'directory' });
+						await window.parent.unzipToFolder(toBeSavedToData + file.fileName, file.content);
+					},
+					condition: (file) => getFileExtension(file.fileName) == "zip",
+					special: true
+				},
 			},
-			openWith: {
-				icon: 'open_with',
-				label: 'Open With',
-				action: (itemuid) => openfile(itemuid, 'any'),
-				condition: (file) => true,
-			},
-			openAsText: {
-				icon: 'article_shortcut',
-				label: 'Open as text',
-				action: (itemuid) => openfile(itemuid, 'text'),
-				condition: (file) => true,
-			},
-		};
+		}
+
 		async function getMenuItems(target) {
 			if (selectedFiles.length > 1) {
 				return [{ label: "Delete All", action: () => deleteFiles(selectedFiles) }];
@@ -2329,15 +2476,24 @@
 				const itemuid = target.getAttribute("unid");
 				slfileID = itemuid;
 				const file = { unid: itemuid, type: 'app', fileName: await window.parent.getFileNameByID(itemuid) };
-				const actions = Object.values(window.fileActions);
-				const conditions = await Promise.all(actions.map(async (action) => await action.condition(file)));
-				const filteredActions = actions.filter((_, index) => conditions[index]);
-				return filteredActions.map(action => ({
-					icon: action.icon,
-					color: action.color,
-					label: action.label,
-					action: () => action.action(itemuid),
-				}));
+				const categories = Object.values(window.fileActions);
+				let result = [];
+				for (const group of categories) {
+					const actions = Object.values(group);
+					const conditions = await Promise.all(actions.map(async (action) => await action.condition(file)));
+					const valid = actions.filter((_, i) => conditions[i]);
+					const mapped = valid.map(a => ({
+						icon: a.icon,
+						color: a.color,
+						label: a.label,
+						action: () => a.action(itemuid),
+						special: a.special || false
+					}));
+					result.push(...mapped);
+				}
+				const special = result.filter(a => a.special);
+				const normal = result.filter(a => !a.special);
+				return [...special, ...normal];
 			}
 			return [{ label: 'Inspect', action: () => console.log('Inspect clicked') }];
 		}
