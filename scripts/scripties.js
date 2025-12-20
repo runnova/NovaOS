@@ -127,7 +127,7 @@ async function useNovaOffline() {
 	if (await justConfirm("Turn on offline mode?", "Offline mode saves a copy of NovaOS (~5MB) in your browser.")) {
 
 		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.register('sw.js', { scope: '/' })
+			navigator.serviceWorker.register('sw.js', { scope: '/NovaOS' })
 				.then((registration) => {
 					console.log('Service Worker registered with scope:', registration.scope);
 				})
